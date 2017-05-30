@@ -12,7 +12,7 @@ Vagrant.configure("2") do |config|
 
   # Every Vagrant development environment requires a box. You can search for
   # boxes at https://atlas.hashicorp.com/search.
-  config.vm.box = "hashicorp/precise64"
+  config.vm.box = "ubuntu/xenial64"
 
   # Disable automatic box update checking. If you disable this, then
   # boxes will only be checked for updates when the user runs
@@ -49,13 +49,13 @@ Vagrant.configure("2") do |config|
   # backing providers for Vagrant. These expose provider-specific options.
   # Example for VirtualBox:
   #
-  # config.vm.provider "virtualbox" do |vb|
+   config.vm.provider "virtualbox" do |vb|
   #   # Display the VirtualBox GUI when booting the machine
   #   vb.gui = true
   #
   #   # Customize the amount of memory on the VM:
-  #   vb.memory = "1024"
-  # end
+     vb.memory = "4096"
+   end
   #
   # View the documentation for the provider you are using for more
   # information on available options.
@@ -70,8 +70,44 @@ Vagrant.configure("2") do |config|
   # Enable provisioning with a shell script. Additional provisioners such as
   # Puppet, Chef, Ansible, Salt, and Docker are also available. Please see the
   # documentation for more information about their specific syntax and use.
-  # config.vm.provision "shell", inline: <<-SHELL
-  #   apt-get update
-  #   apt-get install -y apache2
-  # SHELL
+   config.vm.provision "shell", inline: <<-SHELL
+     export DEBIAN_FRONTEND=noninteractive
+     apt update
+     apt install -y vim emacs openjdk-8-jdk unzip mysql-server
+
+
+     cd /opt
+     wget –quiet http://downloads.typesafe.com/play/2.2.4/play-2.2.4.zip
+     unzip play-2.2.4.zip
+     rm play-2.2.4.zip
+     chown -R ubuntu play-2.2.4
+     echo 'export PLAY_HOME="/opt/play-2.2.4"' >> /opt/activate_play_home
+
+     git clone https://github.com/linkedin/WhereHows.git
+     chwon -R ubuntu WhereHows
+
+     cd WhereHows
+     git checkout -b v0.2.0 tags/v0.2.0
+
+     cd data-model/DDL
+
+     # Customize - it says so IN THE SOURCE CODE!
+     sed -i "s|US/Pacific|$(date +%Z)|g" ETL_DDL/kafka_tracking.sql
+
+     # JUNK! - NOT EVEN VALID CONSTAINTS!!!
+     sed -i "s|\`owner_type\`      VARCHAR(50) DEFAULT NULL COMMENT 'which acl file this owner is in'|\`owner_type\`      VARCHAR(50) NOT NULL COMMENT 'which acl file this owner is in'|" ETL_DDL/git_metadata.sql
+     sed -i "s|\`owner_name\`      VARCHAR(50) DEFAULT NULL COMMENT 'one owner name'|\`owner_name\`      VARCHAR(50) NOT NULL COMMENT 'one owner name'|" ETL_DDL/git_metadata.sql
+     sed -i "s|PRIMARY KEY (\`dataset\`,\`cluster\`,\`partition_name\`,\`log_event_time\`)|PRIMARY KEY (\`dataset\`,\`cluster\`,\`log_event_time\`)|" ETL_DDL/kafka_tracking.sql
+     sed -i "s|\`datacenter\`      VARCHAR(20)        DEFAULT NULL,|\`datacenter\`      VARCHAR(20)        NOT NULL,|" ETL_DDL/dataset_info_metadata.sql
+
+     mysql_tzinfo_to_sql /usr/share/zoneinfo | mysql -u root mysql
+     mysql -u root <<< "CREATE DATABASE wherehows DEFAULT CHARACTER SET utf8 DEFAULT COLLATE utf8_general_ci;"
+     mysql -u root <<< "CREATE USER 'wherehows';"
+     mysql -u root <<< "SET PASSWORD FOR 'wherehows' = PASSWORD('wherehows');"
+     mysql -u root <<< "GRANT ALL ON wherehows.* TO 'wherehows';"
+     mysql -uwherehows -pwherehows -Dwherehows < create_all_tables_wrapper.sql
+     cd ../..
+
+     sudo -u ubuntu PLAY_HOME="/opt/play-2.2.4" SBT_OPTS="-Xms1G -Xmx2G -Xss16M" PLAY_OPTS="-Xms1G -Xmx2G -Xss16M"  ./gradlew build
+   SHELL
 end
