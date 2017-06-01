@@ -73,8 +73,7 @@ Vagrant.configure("2") do |config|
    config.vm.provision "shell", inline: <<-SHELL
      export DEBIAN_FRONTEND=noninteractive
      apt update
-     apt install -y vim emacs openjdk-8-jdk unzip mysql-server
-
+     apt install -y openjdk-8-jdk unzip mysql-server
 
      cd /opt
      wget –quiet http://downloads.typesafe.com/play/2.2.4/play-2.2.4.zip
@@ -83,8 +82,16 @@ Vagrant.configure("2") do |config|
      chown -R ubuntu play-2.2.4
      echo 'export PLAY_HOME="/opt/play-2.2.4"' >> /opt/activate_play_home
 
+     # set up activator
+     cd /opt
+     wget -quiet http://downloads.typesafe.com/typesafe-activator/1.3.11/typesafe-activator-1.3.11-minimal.zip
+     unzip typesafe-activator-1.3.11-minimal.zip
+     rm typesafe-activator-1.3.11-minimal.zip
+     chown -R ubuntu typesafe-activator-1.3.11-minimal
+     echo 'export ACTIVATOR_HOME="/opt/activator-1.3.11-minimal"' >> /opt/activator_home
+
      git clone https://github.com/linkedin/WhereHows.git
-     chwon -R ubuntu WhereHows
+     chown -R ubuntu WhereHows
 
      cd WhereHows
      git checkout -b v0.2.0 tags/v0.2.0
@@ -108,6 +115,6 @@ Vagrant.configure("2") do |config|
      mysql -uwherehows -pwherehows -Dwherehows < create_all_tables_wrapper.sql
      cd ../..
 
-     sudo -u ubuntu PLAY_HOME="/opt/play-2.2.4" SBT_OPTS="-Xms1G -Xmx2G -Xss16M" PLAY_OPTS="-Xms1G -Xmx2G -Xss16M"  ./gradlew build
+     sudo -u ubuntu PLAY_HOME="/opt/play-2.2.4" ACTIVATOR_HOME="/opt/typesafe-activator-1.3.11-minimal" SBT_OPTS="-Xms1G -Xmx2G -Xss16M" PLAY_OPTS="-Xms1G -Xmx2G -Xss16M"  ./gradlew build
    SHELL
 end
