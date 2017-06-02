@@ -23,7 +23,7 @@ Vagrant.configure("2") do |config|
   # within the machine from a port on the host machine. In the example below,
   # accessing "localhost:8080" will access port 80 on the guest machine.
   # NOTE: This will enable public access to the opened port
-  # config.vm.network "forwarded_port", guest: 80, host: 8080
+  config.vm.network "forwarded_port", guest: 9000, host: 9000
 
   # Create a forwarded port mapping which allows access to a specific port
   # within the machine from a port on the host machine and only allow access
@@ -70,13 +70,71 @@ Vagrant.configure("2") do |config|
   # Enable provisioning with a shell script. Additional provisioners such as
   # Puppet, Chef, Ansible, Salt, and Docker are also available. Please see the
   # documentation for more information about their specific syntax and use.
-   config.vm.provision "shell", inline: <<-SHELL
-     export DEBIAN_FRONTEND=noninteractive
-     apt update
-     apt install -y openjdk-8-jdk unzip mysql-server
 
+  # provision to upload local files
+    # put sed commands in a file
+    #config.vm.provision "sed_script", type: "file", source: "sed_cmds.sh", destination: "~/sed_cmds.sh"
+
+    # file with alias and such that user can easily personalize
+    #config.vm.provision "bashrc", type: "file", source: ".bashrc", destination: "~/.bashrc"
+
+    # for installing things that are harder than just apt
+    #config.vm.provision "extra_installs", type: "file", source: "extra.sh", destination: "~/extra.sh"
+
+  # shell script to prepare a snapshot
+  $snap_scipt = <<-SNAP_SCRIPT
+    export DEBIAN_FRONTEND=noninteractive
+
+    # install some utils and prereqs
+    apt update
+    apt install -y vim emacs openjdk-8-jdk unzip mysql-server
+
+    # install/set up play
+    cd /opt
+    wget –-quiet http://downloads.typesafe.com/play/2.2.4/play-2.2.4.zip
+    unzip play-2.2.4.zip
+    rm play-2.2.4.zip
+    chown -R ubuntu play-2.2.4
+    echo 'export PLAY_HOME="/opt/play-2.2.4"' >> /opt/activate_play_home
+
+    # set up activator
+    cd /opt
+    wget --quiet http://downloads.typesafe.com/typesafe-activator/1.3.11/typesafe-activator-1.3.11-minimal.zip
+    unzip typesafe-activator-1.3.11-minimal.zip
+    rm typesafe-activator-1.3.11-minimal.zip
+    chown -R ubuntu typesafe-activator-1.3.11-minimal
+    echo 'export ACTIVATOR_HOME="/opt/activator-1.3.11-minimal"' >> /opt/activate_play_home
+
+  SNAP_SCRIPT
+
+  $wherebuild_script = <<-WHEREBUILD_SCRIPT
+  WHEREBUILD_SCRIPT
+
+
+   config.vm.provision "full", type: "shell", inline: <<-SHELL
+     export DEBIAN_FRONTEND=noninteractive
+
+     # install some utils and prereqs
+     apt update
+     apt install -y vim emacs openjdk-8-jdk unzip mysql-server
+
+     # install suplemon
+     #git clone https://github.com/richrd/suplemon.git
+     #cd suplemon
+     #python3 suplemon.py
+     #echo 'alias supl="suplemon"' >> ~/.bashrc
+
+     # install omf
+     #curl -L -s http://get.oh-my.fish | fish
+
+     # setup fish
+     #git clone https://github.com/SirAeroWN/fish_configs.git
+     #cd fish_configs
+     #mv functions ~/.config/fish
+
+     # install/set up play
      cd /opt
-     wget –quiet http://downloads.typesafe.com/play/2.2.4/play-2.2.4.zip
+     wget –-quiet http://downloads.typesafe.com/play/2.2.4/play-2.2.4.zip
      unzip play-2.2.4.zip
      rm play-2.2.4.zip
      chown -R ubuntu play-2.2.4
@@ -84,28 +142,52 @@ Vagrant.configure("2") do |config|
 
      # set up activator
      cd /opt
-     wget -quiet http://downloads.typesafe.com/typesafe-activator/1.3.11/typesafe-activator-1.3.11-minimal.zip
+     wget --quiet http://downloads.typesafe.com/typesafe-activator/1.3.11/typesafe-activator-1.3.11-minimal.zip
      unzip typesafe-activator-1.3.11-minimal.zip
      rm typesafe-activator-1.3.11-minimal.zip
      chown -R ubuntu typesafe-activator-1.3.11-minimal
-     echo 'export ACTIVATOR_HOME="/opt/activator-1.3.11-minimal"' >> /opt/activator_home
+     echo 'export ACTIVATOR_HOME="/opt/activator-1.3.11-minimal"' >> /opt/activate_play_home
 
+     # source activate_play_home
+     . /opt/activate_play_home
+
+     # append sourcing command to .bashrc
+     #echo 'source /opt/activate_play_home' >> /home/ubuntu/.bashrc ####! failed
+
+     # create whstart.sh
+     #echo 'cd /opt/WhereHows/backend-service; nohup $PLAY_HOME/play run &; cd ../web;nohup $PLAY_HOME/play run &' > /home/ubuntu/.whstart.sh ####! failed
+
+     # have .bashrc run whstart
+     #echo 'source /home/ubuntu/.whstart.sh' >> /home/ubuntu/.bashrc ####! failed
+
+     # clone wherehows
      git clone https://github.com/linkedin/WhereHows.git
      chown -R ubuntu WhereHows
 
+     # switch to stable version
      cd WhereHows
      git checkout -b v0.2.0 tags/v0.2.0
 
+     # build WhereHows
+     sudo -u ubuntu PLAY_HOME="/opt/play-2.2.4" ACTIVATOR_HOME="/opt/typesafe-activator-1.3.11-minimal" SBT_OPTS="-Xms1G -Xmx2G -Xss16M" PLAY_OPTS="-Xms1G -Xmx2G -Xss16M"  ./gradlew build
+
+     # notify of build completion
+     echo '### WhereHows built ###'
+
+     # notify of starting sql
+     echo '### Starting SQL Stuffs ###'
+
+     # fix shit with sql
      cd data-model/DDL
 
      # Customize - it says so IN THE SOURCE CODE!
      sed -i "s|US/Pacific|$(date +%Z)|g" ETL_DDL/kafka_tracking.sql
 
      # JUNK! - NOT EVEN VALID CONSTAINTS!!!
-     sed -i "s|\`owner_type\`      VARCHAR(50) DEFAULT NULL COMMENT 'which acl file this owner is in'|\`owner_type\`      VARCHAR(50) NOT NULL COMMENT 'which acl file this owner is in'|" ETL_DDL/git_metadata.sql
-     sed -i "s|\`owner_name\`      VARCHAR(50) DEFAULT NULL COMMENT 'one owner name'|\`owner_name\`      VARCHAR(50) NOT NULL COMMENT 'one owner name'|" ETL_DDL/git_metadata.sql
-     sed -i "s|PRIMARY KEY (\`dataset\`,\`cluster\`,\`partition_name\`,\`log_event_time\`)|PRIMARY KEY (\`dataset\`,\`cluster\`,\`log_event_time\`)|" ETL_DDL/kafka_tracking.sql
-     sed -i "s|\`datacenter\`      VARCHAR(20)        DEFAULT NULL,|\`datacenter\`      VARCHAR(20)        NOT NULL,|" ETL_DDL/dataset_info_metadata.sql
+     sed -i "s|\\`owner_type\\`      VARCHAR(50) DEFAULT NULL COMMENT 'which acl file this owner is in'|\\`owner_type\\`      VARCHAR(50) NOT NULL COMMENT 'which acl file this owner is in'|" ETL_DDL/git_metadata.sql
+     sed -i "s|\\`owner_name\\`      VARCHAR(50) DEFAULT NULL COMMENT 'one owner name'|\\`owner_name\\`      VARCHAR(50) NOT NULL COMMENT 'one owner name'|" ETL_DDL/git_metadata.sql
+     sed -i "s|PRIMARY KEY (\\`dataset\\`,\\`cluster\\`,\\`partition_name\\`,\\`log_event_time\\`)|PRIMARY KEY (\\`dataset\\`,\\`cluster\\`,\\`log_event_time\\`)|" ETL_DDL/kafka_tracking.sql
+     sed -i "s|\\`datacenter\\`      VARCHAR(20)        DEFAULT NULL,|\\`datacenter\\`      VARCHAR(20)        NOT NULL,|" ETL_DDL/dataset_info_metadata.sql
 
      mysql_tzinfo_to_sql /usr/share/zoneinfo | mysql -u root mysql
      mysql -u root <<< "CREATE DATABASE wherehows DEFAULT CHARACTER SET utf8 DEFAULT COLLATE utf8_general_ci;"
@@ -115,6 +197,6 @@ Vagrant.configure("2") do |config|
      mysql -uwherehows -pwherehows -Dwherehows < create_all_tables_wrapper.sql
      cd ../..
 
-     sudo -u ubuntu PLAY_HOME="/opt/play-2.2.4" ACTIVATOR_HOME="/opt/typesafe-activator-1.3.11-minimal" SBT_OPTS="-Xms1G -Xmx2G -Xss16M" PLAY_OPTS="-Xms1G -Xmx2G -Xss16M"  ./gradlew build
+     # done?
    SHELL
 end
