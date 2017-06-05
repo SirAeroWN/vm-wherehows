@@ -12,7 +12,7 @@ Launch the VM by running `./whvm.sh start`. This will start the VM and start the
 ##Breakdown of files
 
 ###`sed_cmds.sh`
----------------------
+_____________________
 Has the `sed` commands for correcting the SQL database creation commands. Uses absolute paths to WhereHows files, so if WhereHows is moved then these need to be updated.
 
 ###`.bashrc`
