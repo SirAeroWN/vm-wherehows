@@ -21,7 +21,13 @@ start() {
     cd ${SDIR}/${APP}
 
     echo "   starting..."
-    nohup ./target/universal/stage/bin/wherehows -Dhttp.port=${PORT} > /home/ubuntu/application.log 2>&1&
+    case $APP in
+      web)
+        nohup ./target/universal/stage/bin/wherehows -Dhttp.port=${PORT} > /home/ubuntu/application_${APP}.log 2>&1&
+        ;;
+      backend-service)
+        nohup ./target/universal/stage/bin/backend-service -Dhttp.port=${PORT} > /home/ubuntu/application_${APP}.log 2>&1&
+        ;;
 }
 
 stop() {

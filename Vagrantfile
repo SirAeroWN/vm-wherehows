@@ -10,11 +10,6 @@
   $prebuild_script = <<-PREBUILD_SCRIPT
     export DEBIAN_FRONTEND=noninteractive
 
-    # make sure imported scripts are executable
-    chmod +x ~/sed_cmds.sh
-    chmod +x ~/extra.sh
-    chmod +x ~/playapp
-
     # install some utils and prereqs
     apt update
     apt install -y vim emacs openjdk-8-jdk unzip mysql-server
@@ -38,6 +33,10 @@
   PREBUILD_SCRIPT
 
   $wherebuild_script = <<-WHEREBUILD_SCRIPT
+
+    # make sure imported scripts are executable
+    chmod u+x /home/ubuntu/playapp
+
     # source activate_play_home
     . /opt/activate_play_home
 
@@ -59,22 +58,33 @@
   WHEREBUILD_SCRIPT
 
   $sql_script = <<-SQL_SCRIPT
+
+    # make sure imported scripts are executable
+    chmod u+x /home/ubuntu/sed_cmds.sh
+
     # notify of starting sql
     echo '### Starting SQL Stuffs ###'
 
     # run sed scripts
     /home/ubuntu/sed_cmds.sh
 
+    # switch to correct dir
+    cd /opt/WhereHows/data-model/DDL
+
     mysql_tzinfo_to_sql /usr/share/zoneinfo | mysql -u root mysql
     mysql -u root <<< "CREATE DATABASE wherehows DEFAULT CHARACTER SET utf8 DEFAULT COLLATE utf8_general_ci;"
     mysql -u root <<< "CREATE USER 'wherehows';"
     mysql -u root <<< "SET PASSWORD FOR 'wherehows' = PASSWORD('wherehows');"
     mysql -u root <<< "GRANT ALL ON wherehows.* TO 'wherehows';"
-    mysql -uwherehows -pwherehows -Dwherehows < create_all_tables_wrapper.sql
+    mysql -uwherehows -pwherehows -Dwherehows < /opt/WhereHows/data-model/DDL/create_all_tables_wrapper.sql
 
   SQL_SCRIPT
 
   $install_extras = <<-INSTALL_EXTRAS
+
+    # make sure imported scripts are executable
+    chmod u+x /home/ubuntu/extra.sh
+
     # run extra set up files
     /home/ubuntu/extra.sh
 
