@@ -32,3 +32,4 @@ Abstracts away and simplifies some VM actions. Commands:
 * `reconfig <provision>` halts, and ups VM with specified provision
 * `init` deletes and existing VM, creates a new one with certain provisions, and creates previously mentioned snapshots
 * `start` makes sure VM is up and logs in
+* `delete <name>` deletes specified snapshot, requires full name
