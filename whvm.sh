@@ -37,6 +37,11 @@ init() {
 	source ./startvm_v2.sh
 }
 
+start() {
+	vagrant up
+	vagrant ssh
+}
+
 case $1 in
 	save)
 		save $2
@@ -55,6 +60,9 @@ case $1 in
 		;;
 	init)
 		init
+		;;
+	start)
+		start
 		;;
 	*)
 		echo "Usage: whvm.sh {save|restore|list|restart|reconfig|init} {snapshot-name|provison-name}"
