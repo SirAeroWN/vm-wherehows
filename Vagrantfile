@@ -220,16 +220,16 @@ Vagrant.configure("2") do |config|
 
   # provision to upload local files
   # put sed commands in a file
-  config.vm.provision "sed_script", type: "file", source: "/Users/wnorvell/wherehows/sed_cmds.sh", destination: "~/sed_cmds.sh"
+  config.vm.provision "sed_script", type: "file", source: "./sed_cmds.sh", destination: "~/sed_cmds.sh"
 
   # file with alias and such that user can easily personalize
-  config.vm.provision "bashrc", type: "file", source: "/Users/wnorvell/wherehows/.bashrc", destination: "~/.bashrc"
+  config.vm.provision "bashrc", type: "file", source: "./.bashrc", destination: "~/.bashrc"
 
   # for installing things that are harder than just apt
-  config.vm.provision "extra_installs", type: "file", source: "/Users/wnorvell/wherehows/extra.sh", destination: "~/extra.sh"
+  config.vm.provision "extra_installs", type: "file", source: "./extra.sh", destination: "~/extra.sh"
 
   # upload script for starting front end
-  config.vm.provision "wh_starter", type: "file", source: "/Users/wnorvell/wherehows/playapp", destination: "~/playapp"
+  config.vm.provision "wh_starter", type: "file", source: "./playapp", destination: "~/playapp"
 
 
   # run configs
