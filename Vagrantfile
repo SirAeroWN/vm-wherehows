@@ -171,6 +171,7 @@ Vagrant.configure("2") do |config|
   # NOTE: This will enable public access to the opened port
   config.vm.network "forwarded_port", guest: 9000, host: 9000
   config.vm.network "forwarded_port", guest: 19001, host: 19001
+  config.vm.network "forwarded_port", guest: 8081, host: 8081
 
   # Create a forwarded port mapping which allows access to a specific port
   # within the machine from a port on the host machine and only allow access
@@ -230,6 +231,9 @@ Vagrant.configure("2") do |config|
 
   # upload script for starting front end
   config.vm.provision "wh_starter", type: "file", source: "./playapp", destination: "~/playapp"
+
+  # upload hadoop tar
+  config.vm.provision "hadoop_files", type: "file", source: "/Users/wnorvell/Downloads/hadoop-3.0.0-alpha3.tar", destination: "~/hadoop-3.0.0-alpha3.tar"
 
 
   # run configs
