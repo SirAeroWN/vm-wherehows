@@ -102,7 +102,8 @@ delete() {
 		read snap
 		vagrant snapshot delete ${snaps[$snap]}
 	else
-	vagrant snapshot delete $1
+		vagrant snapshot delete $1
+	fi
 }
 
 case $1 in
