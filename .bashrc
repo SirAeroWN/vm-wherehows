@@ -142,8 +142,6 @@ alias ...='cd ../../'
 
 alias supl="suplemon"
 
-alias playapp="~/playapp"
-
 ### sourcing and such ###
 if [ -f /opt/activate_play_home ]; then
   source /opt/activate_play_home
@@ -156,5 +154,7 @@ export WHZ_DB_PASSWORD="wherehows"
 export WHZ_DB_HOST="localhost"
 
 ### starting WhereHows ###
-sudo ~/playapp backend-service start 19001
-sudo ~/playapp web start 9000
+~/playapp backend-service start 19001
+~/playapp web start 9000
+
+alias playapp="~/playapp"
