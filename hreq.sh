@@ -32,6 +32,6 @@ case $1 in
 		get $2
 		;;
 	*)
-		echo "Usage: hreq {post|put|get} {file|URL}"
+		echo "Usage: hreq {post|put|get} {file|URL} {URL}"
 		;;
 esac
