@@ -171,7 +171,8 @@ Vagrant.configure("2") do |config|
   # NOTE: This will enable public access to the opened port
   config.vm.network "forwarded_port", guest: 9000, host: 9000
   config.vm.network "forwarded_port", guest: 19001, host: 19001
-  config.vm.network "forwarded_port", guest: 8081, host: 8081
+  #config.vm.network "forwarded_port", guest: 8081, host: 80081
+  config.vm.network "forwarded_port", guest: 3306, host: 3307
 
   # Create a forwarded port mapping which allows access to a specific port
   # within the machine from a port on the host machine and only allow access
