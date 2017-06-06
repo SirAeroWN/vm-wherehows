@@ -6,7 +6,7 @@ Run `./whvm.sh init` to initialize the VM and create four snapshots, the snapsho
 * sql_(datetime): VM just after the SQL databases were created
 * full_(datetime): VM after `extra.sh` was run
 
-Launch the VM by running `./whvm.sh start`. This will start the VM and start the WhereHows services running in the background. Thier logs can be found at `~/application_backend-service.log` and `~/application_web.log`.
+Launch the VM by running `./whvm.sh start`. This will start the VM and start the WhereHows services running in the background. Their logs can be found at `~/application_backend-service.log` and `~/application_web.log`.
 
 ##Breakdown of files
 

@@ -142,11 +142,19 @@ alias ...='cd ../../'
 
 alias supl="suplemon"
 
+alias playapp="~/playapp"
+
 ### sourcing and such ###
 if [ -f /opt/activate_play_home ]; then
   source /opt/activate_play_home
 fi
 
+## need to export some global vars
+export WHZ_DB_URL="jdbc:mysql://localhost:3306/wherehows"
+export WHZ_DB_USERNAME="wherehows"
+export WHZ_DB_PASSWORD="wherehows"
+export WHZ_DB_HOST="localhost"
+
 ### starting WhereHows ###
-sudo ~/playapp backend-service start 9000
+sudo ~/playapp backend-service start 19001
 sudo ~/playapp web start 9000

@@ -33,8 +33,7 @@ reconfig() {
 # first setup of WhereHows VM
 init() {
 	vagrant halt
-	vagrant --force delete
-	vagrant up --provision-with bashrc
+	vagrant --force destroy
 	vagrant up --provision-with prebuild
 	vagrant halt
 	DATE=`date +%Y_%m_%d-%H-%M`
@@ -42,7 +41,6 @@ init() {
 	vagrant snapshot save $NAME
 	osascript -e 'display notification "prebuild done" with title "It done" sound name "Ping"'
 
-	vagrant up --provision-with wh_starter
 	vagrant up --provision-with build
 	vagrant halt
 	DATE=`date +%Y_%m_%d-%H-%M`
@@ -59,6 +57,8 @@ init() {
 	osascript -e 'display notification "sql done" with title "It done" sound name "Ping"'
 
 	vagrant up --provision-with extra_installs
+	vagrant up --provision-with bashrc
+	vagrant up --provision-with wh_starter
 	vagrant up --provision-with extras
 	vagrant halt
 	DATE=`date +%Y_%m_%d-%H-%M`
