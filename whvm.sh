@@ -2,14 +2,26 @@
 
 # saves snapshot with given name and current date
 save() {
-	DATE=`date +%Y_%m_%d-%H-%M`	
+	DATE=`date +%Y_%m_%d-%H:%M`	
 	NAME="${1}_${DATE}"
 	vagrant snapshot save $NAME
 }
 
 # restores to specified snapshot
 restore() {
-	vagrant snapshot restore $1 --no-provision
+	if [ -z "$1" ]; then
+		snaps=( $(vagrant snapshot list) )
+		num_snaps=${#snaps[@]}
+		echo $num_snaps
+		for i in `seq 0 $(($num_snaps-1))`; do
+			echo $i : ${snaps[$i]}
+		done
+		echo "pick a snapshot#: "
+		read snap
+		vagrant snapshot restore ${snaps[$snap]} --no-provision
+	else
+		vagrant snapshot restore $1 --no-provision
+	fi
 }
 
 # prints list of snapshots
@@ -79,6 +91,17 @@ start() {
 
 # deletes specified snapshot
 delete() {
+	if [ -z "$1" ]; then
+		snaps=( $(vagrant snapshot list) )
+		num_snaps=${#snaps[@]}
+		echo $num_snaps
+		for i in `seq 0 $(($num_snaps-1))`; do
+			echo $i : ${snaps[$i]}
+		done
+		echo "pick a snapshot#: "
+		read snap
+		vagrant snapshot delete ${snaps[$snap]}
+	else
 	vagrant snapshot delete $1
 }
 
