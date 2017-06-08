@@ -66,23 +66,35 @@
   $sql_script = <<-SQL_SCRIPT
 
     # make sure imported scripts are executable
-    chmod u+x /home/ubuntu/sed_cmds.sh
+    # chmod u+x /home/ubuntu/sed_cmds.sh
 
     # notify of starting sql
     echo '### Starting SQL Stuffs ###'
 
     # run sed scripts
-    /home/ubuntu/sed_cmds.sh
+    # /home/ubuntu/sed_cmds.sh
 
     # switch to correct dir
-    cd /opt/WhereHows/data-model/DDL
+    # cd /opt/WhereHows/data-model/DDL
 
     mysql_tzinfo_to_sql /usr/share/zoneinfo | mysql -u root mysql
     mysql -u root <<< "CREATE DATABASE wherehows DEFAULT CHARACTER SET utf8 DEFAULT COLLATE utf8_general_ci;"
     mysql -u root <<< "CREATE USER 'wherehows';"
     mysql -u root <<< "SET PASSWORD FOR 'wherehows' = PASSWORD('wherehows');"
     mysql -u root <<< "GRANT ALL ON wherehows.* TO 'wherehows';"
-    mysql -uwherehows -pwherehows -Dwherehows < /opt/WhereHows/data-model/DDL/create_all_tables_wrapper.sql
+
+    # get sql commands
+    cd /home/ubuntu/pre_downloads
+    tar -xzvf DDL.tar.gz
+
+    # run sql commands
+    mysql -uwherehows -pwherehows -Dwherehows < /home/ubuntu/pre_downloads/DDL/create_all_tables_wrapper.sql
+
+    # get rid of them
+    rm -r /home/ubuntu/pre_downloads/DDL/
+    rm /home/ubuntu/pre_downloads/DDL.tar.gz
+
+    # mysql -uwherehows -pwherehows -Dwherehows < /opt/WhereHows/data-model/DDL/create_all_tables_wrapper.sql
 
   SQL_SCRIPT
 
