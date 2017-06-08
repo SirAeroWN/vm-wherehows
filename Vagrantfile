@@ -14,9 +14,19 @@
     apt update
     apt install -y vim emacs openjdk-8-jdk unzip mysql-server
 
-    # install/set up play
+    sed -i "s|bind-address    = 127.0.0.1|bind-address    = 0.0.0.0" /etc/mysql/mysql.conf.d/mysqld.cnf
+
+    # # install/set up play
+    # cd /opt
+    # wget –-quiet http://downloads.typesafe.com/play/2.2.4/play-2.2.4.zip
+    # unzip play-2.2.4.zip
+    # rm play-2.2.4.zip
+    # chown -R ubuntu play-2.2.4
+    # echo 'export PLAY_HOME="/opt/play-2.2.4"' >> /opt/activate_play_home
+
+    # play zip already uploaded
+    mv /home/ubuntu/pre_downloads/play-2.2.4.zip /opt/
     cd /opt
-    wget –-quiet http://downloads.typesafe.com/play/2.2.4/play-2.2.4.zip
     unzip play-2.2.4.zip
     rm play-2.2.4.zip
     chown -R ubuntu play-2.2.4
@@ -29,15 +39,17 @@
   $wherebuild_script = <<-WHEREBUILD_SCRIPT
 
     # make sure imported scripts are executable
-    chmod u+x /home/ubuntu/playapp
 
     # source activate_play_home
     . /opt/activate_play_home
 
-    # clone wherehows
+    # WhereHows already in VM, need to move and extract
+    mv /home/ubuntu/pre_downloads/WhereHows.tar.gz /opt/
     cd /opt/
-    git clone https://github.com/linkedin/WhereHows.git
+    tar -xzvf WhereHows.tar.gz
+    rm WhereHows.tar.gz
     chown -R ubuntu /opt/WhereHows
+
 
     # switch to stable version
     cd /opt/WhereHows
@@ -85,71 +97,6 @@
 
   INSTALL_EXTRAS
 
-  $shell_script = <<-SHELL_SCRIPT
-    export DEBIAN_FRONTEND=noninteractive
-
-    # install some utils and prereqs
-    apt update
-    apt install -y vim emacs openjdk-8-jdk unzip mysql-server
-
-    # install/set up play
-    cd /opt
-    wget –-quiet http://downloads.typesafe.com/play/2.2.4/play-2.2.4.zip
-    unzip play-2.2.4.zip
-    rm play-2.2.4.zip
-    chown -R ubuntu play-2.2.4
-    echo 'export PLAY_HOME="/opt/play-2.2.4"' >> /opt/activate_play_home
-
-    # set up activator
-    cd /opt
-    wget --quiet http://downloads.typesafe.com/typesafe-activator/1.3.11/typesafe-activator-1.3.11-minimal.zip
-    unzip typesafe-activator-1.3.11-minimal.zip
-    rm typesafe-activator-1.3.11-minimal.zip
-    chown -R ubuntu typesafe-activator-1.3.11-minimal
-    echo 'export ACTIVATOR_HOME="/opt/activator-1.3.11-minimal"' >> /opt/activate_play_home
-
-    # source activate_play_home
-    . /opt/activate_play_home
-
-    # clone wherehows
-    git clone https://github.com/linkedin/WhereHows.git
-    chown -R ubuntu WhereHows
-
-    # switch to stable version
-    cd WhereHows
-    git checkout -b v0.2.0 tags/v0.2.0
-
-    # build WhereHows
-    sudo -u ubuntu PLAY_HOME="/opt/play-2.2.4" ACTIVATOR_HOME="/opt/typesafe-activator-1.3.11-minimal" SBT_OPTS="-Xms1G -Xmx2G -Xss16M" PLAY_OPTS="-Xms1G -Xmx2G -Xss16M"  ./gradlew build
-
-    # notify of build completion
-    echo '### WhereHows built ###'
-
-    # notify of starting sql
-    echo '### Starting SQL Stuffs ###'
-
-    # fix shit with sql
-    cd data-model/DDL
-
-    # Customize - it says so IN THE SOURCE CODE!
-    sed -i "s|US/Pacific|$(date +%Z)|g" ETL_DDL/kafka_tracking.sql
-
-    # JUNK! - NOT EVEN VALID CONSTAINTS!!!
-    sed -i "s|\\`owner_type\\`      VARCHAR(50) DEFAULT NULL COMMENT 'which acl file this owner is in'|\\`owner_type\\`      VARCHAR(50) NOT NULL COMMENT 'which acl file this owner is in'|" ETL_DDL/git_metadata.sql
-    sed -i "s|\\`owner_name\\`      VARCHAR(50) DEFAULT NULL COMMENT 'one owner name'|\\`owner_name\\`      VARCHAR(50) NOT NULL COMMENT 'one owner name'|" ETL_DDL/git_metadata.sql
-    sed -i "s|PRIMARY KEY (\\`dataset\\`,\\`cluster\\`,\\`partition_name\\`,\\`log_event_time\\`)|PRIMARY KEY (\\`dataset\\`,\\`cluster\\`,\\`log_event_time\\`)|" ETL_DDL/kafka_tracking.sql
-    sed -i "s|\\`datacenter\\`      VARCHAR(20)        DEFAULT NULL,|\\`datacenter\\`      VARCHAR(20)        NOT NULL,|" ETL_DDL/dataset_info_metadata.sql
-
-    mysql_tzinfo_to_sql /usr/share/zoneinfo | mysql -u root mysql
-    mysql -u root <<< "CREATE DATABASE wherehows DEFAULT CHARACTER SET utf8 DEFAULT COLLATE utf8_general_ci;"
-    mysql -u root <<< "CREATE USER 'wherehows';"
-    mysql -u root <<< "SET PASSWORD FOR 'wherehows' = PASSWORD('wherehows');"
-    mysql -u root <<< "GRANT ALL ON wherehows.* TO 'wherehows';"
-    mysql -uwherehows -pwherehows -Dwherehows < create_all_tables_wrapper.sql
-    cd ../..
-
-    # done?
-  SHELL_SCRIPT
 
 Vagrant.configure("2") do |config|
   # The most common configuration options are documented and commented below.
@@ -233,8 +180,11 @@ Vagrant.configure("2") do |config|
   # upload script for starting front end
   config.vm.provision "wh_starter", type: "file", source: "./playapp", destination: "~/playapp"
 
-  # upload hadoop tar
-  config.vm.provision "hadoop_files", type: "file", source: "/Users/wnorvell/Downloads/hadoop-3.0.0-alpha3.tar", destination: "~/hadoop-3.0.0-alpha3.tar"
+  # upload compressed versions of play, WhereHows
+  # these are expected to be in a pre_downloads/ directory in the same directory as the Vagrantfile
+  config.vm.provision "where_git", type: "file", source: "./pre_downloads/WhereHows.tar.gz", destination: "~/pre_downloads/WhereHows.tar.gz"
+
+  config.vm.provision "play_zip", type: "file", source: "./pre_downloads/play-2.2.4.zip", destination: "~/pre_downloads/play-2.2.4.zip"
 
 
   # run configs
@@ -246,6 +196,6 @@ Vagrant.configure("2") do |config|
 
   config.vm.provision "extras", type: "shell", inline: $install_extras
 
-  config.vm.provision "old", type: "shell", inline: $shell_script
+  config.vm.provision "noop", type: "shell", inline: "echo nooped"
 
 end
