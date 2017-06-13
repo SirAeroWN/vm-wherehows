@@ -14,7 +14,7 @@
     apt update
     apt install -y vim emacs openjdk-8-jdk unzip mysql-server
 
-    sed -i "s|bind-address    = 127.0.0.1|bind-address    = 0.0.0.0" /etc/mysql/mysql.conf.d/mysqld.cnf
+    #sed -i "s|bind-address    = 127.0.0.1|bind-address    = 0.0.0.0" /etc/mysql/mysql.conf.d/mysqld.cnf
 
     # # install/set up play
     # cd /opt
@@ -31,6 +31,14 @@
     rm play-2.2.4.zip
     chown -R ubuntu play-2.2.4
     echo 'export PLAY_HOME="/opt/play-2.2.4"' >> /opt/activate_play_home
+
+    # set up activator
+    cd /opt
+    wget -quiet http://downloads.typesafe.com/typesafe-activator/1.3.11/typesafe-activator-1.3.11-minimal.zip
+    unzip typesafe-activator-1.3.11-minimal.zip
+    rm typesafe-activator-1.3.11-minimal.zip
+    chown -R ubuntu typesafe-activator-1.3.11-minimal
+    echo 'export ACTIVATOR_HOME="/opt/activator-1.3.11-minimal"' >> /opt/activator_home
 
     chown -R ubuntu /var/tmp/
 
@@ -56,47 +64,60 @@
     git checkout -b v0.2.0 tags/v0.2.0
 
     # build WhereHows
-    sudo -u ubuntu PLAY_HOME="/opt/play-2.2.4" SBT_OPTS="-Xms1G -Xmx2G -Xss16M" PLAY_OPTS="-Xms1G -Xmx2G -Xss16M"  ./gradlew build
+    sudo -u ubuntu PLAY_HOME="/opt/play-2.2.4" ACTIVATOR_HOME="/opt/activator-1.3.11-minimal" SBT_OPTS="-Xms1G -Xmx2G -Xss16M" PLAY_OPTS="-Xms1G -Xmx2G -Xss16M"  ./gradlew build
 
     # notify of build completion
     echo '### WhereHows built ###'
+
+    sudo mkdir /var/tmp/wherehows
+    sudo chmod a+rw /var/tmp/wherehows
+    sudo mkdir /var/tmp/wherehows/resource
+
+    sudo touch /var/tmp/wherehows/resource/dataset.json
+    sudo touch /var/tmp/wherehows/resource/flow.json
 
   WHEREBUILD_SCRIPT
 
   $sql_script = <<-SQL_SCRIPT
 
     # make sure imported scripts are executable
-    # chmod u+x /home/ubuntu/sed_cmds.sh
+    chmod u+x /home/ubuntu/sed_cmds.sh
 
     # notify of starting sql
     echo '### Starting SQL Stuffs ###'
 
     # run sed scripts
-    # /home/ubuntu/sed_cmds.sh
+    /home/ubuntu/sed_cmds.sh
 
     # switch to correct dir
-    # cd /opt/WhereHows/data-model/DDL
+    cd /opt/WhereHows/data-model/DDL
 
     mysql_tzinfo_to_sql /usr/share/zoneinfo | mysql -u root mysql
     mysql -u root <<< "CREATE DATABASE wherehows DEFAULT CHARACTER SET utf8 DEFAULT COLLATE utf8_general_ci;"
     mysql -u root <<< "CREATE USER 'wherehows';"
     mysql -u root <<< "SET PASSWORD FOR 'wherehows' = PASSWORD('wherehows');"
     mysql -u root <<< "GRANT ALL ON wherehows.* TO 'wherehows';"
-
-    # get sql commands
-    cd /home/ubuntu/pre_downloads
-    tar -xzvf DDL.tar.gz
-
-    # run sql commands
-    mysql -uwherehows -pwherehows -Dwherehows < /home/ubuntu/pre_downloads/DDL/create_all_tables_wrapper.sql
-
-    # get rid of them
-    rm -r /home/ubuntu/pre_downloads/DDL/
-    rm /home/ubuntu/pre_downloads/DDL.tar.gz
-
-    # mysql -uwherehows -pwherehows -Dwherehows < /opt/WhereHows/data-model/DDL/create_all_tables_wrapper.sql
+    mysql -u root <<< "CREATE USER 'wherehows_ro';"
+    mysql -u root <<< "GRANT ALL ON wherehows.* TO 'wherehows_ro'"
+    mysql -u root <<< "SET PASSWORD FOR 'wherehows_ro' = PASSWORD('readmetadata');"
+    mysql -u root <<< "SET GLOBAL sql_mode=(SELECT REPLACE(@@sql_mode,'ONLY_FULL_GROUP_BY',''));"
+    mysql -uwherehows -pwherehows -Dwherehows < /opt/WhereHows/data-model/DDL/create_all_tables_wrapper.sql
 
   SQL_SCRIPT
+
+  $buildinplace_script = <<-BUILDINPLACE_SCRIPT
+    cd /opt/WhereHows
+
+    # build WhereHows
+    sudo -u ubuntu PLAY_HOME="/opt/play-2.2.4" ACTIVATOR_HOME="/opt/activator-1.3.11-minimal" SBT_OPTS="-Xms1G -Xmx2G -Xss16M" PLAY_OPTS="-Xms1G -Xmx2G -Xss16M"  ./gradlew build
+
+    # notify of build completion
+    echo '### WhereHows built ###'
+  BUILDINPLACE_SCRIPT
+
+  $fixgroup_script = <<-FIXGROUP_SCRIPT
+    mysql -u root <<< "SET GLOBAL sql_mode=(SELECT REPLACE(@@sql_mode,'ONLY_FULL_GROUP_BY',''));"
+  FIXGROUP_SCRIPT
 
   $install_extras = <<-INSTALL_EXTRAS
 
@@ -108,6 +129,13 @@
     /home/ubuntu/extra.sh
 
   INSTALL_EXTRAS
+
+  $cattlog_script = <<-CATTLOG_SCRIPT
+    #mysql -u root <<< "CREATE DATABASE cattlog DEFAULT CHARACTER SET utf8 DEFAULT COLLATE utf8_general_ci;"
+    #mysql -u root <<< "CREATE USER 'cattlog';"
+    #mysql -u root <<< "SET PASSWORD FOR 'cattlog' = PASSWORD('cattlog');"
+    mysql -u root <<< "GRANT ALL ON cattlog.* TO 'cattlog';"
+  CATTLOG_SCRIPT
 
 
 Vagrant.configure("2") do |config|
@@ -209,5 +237,11 @@ Vagrant.configure("2") do |config|
   config.vm.provision "extras", type: "shell", inline: $install_extras
 
   config.vm.provision "noop", type: "shell", inline: "echo nooped"
+
+  config.vm.provision "fixgroup", type: "shell", inline: $fixgroup_script
+
+  config.vm.provision "cattlog", type: "shell", inline: $cattlog_script
+
+  config.vm.provision "buildinplace", type: "shell", inline: $buildinplace_script
 
 end
