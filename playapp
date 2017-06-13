@@ -23,10 +23,10 @@ start() {
     echo "   starting..."
     case $APP in
       web)
-        nohup ./target/universal/stage/bin/wherehows -Dhttp.port=${PORT} > /home/ubuntu/application_${APP}.log 2>&1&
+        nohup ./target/universal/stage/bin/wherehows -Dhttp.port=${PORT} > /home/ubuntu/${APP}.log 2>&1&
         ;;
       backend-service)
-        nohup ./target/universal/stage/bin/backend-service -Dhttp.port=${PORT} > /home/ubuntu/application_${APP}.log 2>&1&
+        nohup ./target/universal/stage/bin/backend-service -Dhttp.port=${PORT} > /home/ubuntu/${APP}.log 2>&1&
         ;;
     esac
 }

@@ -61,7 +61,7 @@ restart() {
 
 # reboots vm with specified provision
 reconfig() {
-	vagrant halt
+	#vagrant halt
 	vagrant up --provision-with $1
 }
 
@@ -177,6 +177,7 @@ repull() {
 
 build() {
 	reconfig buildinplace
+	start
 }
 
 case $1 in

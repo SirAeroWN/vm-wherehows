@@ -142,6 +142,8 @@ alias ...='cd ../../'
 
 alias supl="suplemon"
 
+alias ssupl="sudo suplemon"
+
 ### sourcing and such ###
 if [ -f /opt/activate_play_home ]; then
   source /opt/activate_play_home

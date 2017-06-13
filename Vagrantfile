@@ -111,6 +111,9 @@
     # build WhereHows
     sudo -u ubuntu PLAY_HOME="/opt/play-2.2.4" ACTIVATOR_HOME="/opt/activator-1.3.11-minimal" SBT_OPTS="-Xms1G -Xmx2G -Xss16M" PLAY_OPTS="-Xms1G -Xmx2G -Xss16M"  ./gradlew build
 
+    # have to fix sql every time for some reason, might indicate this is just treating a symptom of a more fundemental problem
+    mysql -u root <<< "SET GLOBAL sql_mode=(SELECT REPLACE(@@sql_mode,'ONLY_FULL_GROUP_BY',''));"
+
     # notify of build completion
     echo '### WhereHows built ###'
   BUILDINPLACE_SCRIPT
