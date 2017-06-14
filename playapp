@@ -5,7 +5,7 @@ start() {
 	SDIR="/opt/WhereHows"
 	APP="$1"
   PORT="$3"
-	echo " * Starting PLAYAPP Service"
+	echo " * Starting ${APP} Service"
 
     if [ -f ${SDIR}/${APP}/target/universal/stage/RUNNING_PID ]
     then
@@ -34,7 +34,7 @@ start() {
 stop() {
 	SDIR="/opt/WhereHows"
 	APP="$1"
-	echo " * Stopping PLAYAPP Service"
+	echo " * Stopping ${APP} Service"
 
     if [ ! -f ${SDIR}/${APP}/target/universal/stage/RUNNING_PID ]
     then

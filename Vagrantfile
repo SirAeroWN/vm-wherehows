@@ -223,6 +223,9 @@ Vagrant.configure("2") do |config|
   # upload script for starting front end
   config.vm.provision "wh_starter", type: "file", source: "./playapp", destination: "~/playapp"
 
+  # upload LineageDAO.java
+  config.vm.provision "lindao", type: "file", source: "./LineageDAO.java", destination: "/opt/WhereHows/web/app/dao/LineageDAO.java"
+
   # upload compressed versions of play, WhereHows
   # these are expected to be in a pre_downloads/ directory in the same directory as the Vagrantfile
   config.vm.provision "where_git", type: "file", source: "./pre_downloads/WhereHows.tar.gz", destination: "~/pre_downloads/WhereHows.tar.gz"
