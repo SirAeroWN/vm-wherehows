@@ -176,7 +176,15 @@ repull() {
 }
 
 build() {
-	reconfig buildinplace
+	if [ -z "$1" ]; then
+		reconfig buildinplace
+	else
+		reconfig lindao
+		reconfig linjs
+		reconfig linnode
+		reconfig buildinplace
+	fi
+	osascript -e 'display notification "buildinplace done" with title "It done" sound name "Ping"'
 	start
 }
 
@@ -218,7 +226,7 @@ case $1 in
 		repull
 		;;
 	build)
-		build
+		build $2
 		;;
 	*)
 		#echo "Usage: whvm.sh {save|restore|list|restart|reconfig|init|start|delete|configFrom|rebuild|ready} {snapshot-name|provison-name}"
@@ -235,7 +243,7 @@ case $1 in
 		echo "rebuild"
 		echo "ready"
 		echo "repull"
-		echo "build"
+		echo "build [upload]"
 		exit 1
 		;;
 esac
