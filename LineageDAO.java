@@ -63,6 +63,7 @@ public class LineageDAO extends AbstractMySQLOpenSourceDAO {
         node.id = nodes.size();
         node.level = level;
         node.urn = urn;
+        node._sort_list = new ArrayList<String>();
         switch (parseURN(urn)) {
             case "app":
                 node.node_type = "app";
@@ -281,7 +282,7 @@ public class LineageDAO extends AbstractMySQLOpenSourceDAO {
                 if (node == null) {
                     Logger.debug("it's node");
                 } else if (node._sort_list == null) {
-                    //Logger.debug("it's sort list|" + Math.abs(node.level));
+                    Logger.debug("it's sort list|" + Math.abs(node.level));
                 }
             }
         }
