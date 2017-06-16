@@ -102,6 +102,7 @@
     mysql -u root <<< "SET PASSWORD FOR 'wherehows_ro' = PASSWORD('readmetadata');"
     mysql -u root <<< "SET GLOBAL sql_mode=(SELECT REPLACE(@@sql_mode,'ONLY_FULL_GROUP_BY',''));"
     mysql -uwherehows -pwherehows -Dwherehows < /opt/WhereHows/data-model/DDL/create_all_tables_wrapper.sql
+    mysql -uwherehows -pwherehows -Dwherehows <<< "CREATE TABLE `family` ( `id` int(11) unsigned NOT NULL AUTO_INCREMENT, `parent_urn` varchar(200) NOT NULL DEFAULT '', `child_urn` varchar(200) NOT NULL DEFAULT '', PRIMARY KEY (`id`)) ENGINE=InnoDB DEFAULT CHARSET=utf8;"
 
   SQL_SCRIPT
 
@@ -161,7 +162,6 @@ Vagrant.configure("2") do |config|
   # NOTE: This will enable public access to the opened port
   config.vm.network "forwarded_port", guest: 9000, host: 9000
   config.vm.network "forwarded_port", guest: 19001, host: 19001
-  #config.vm.network "forwarded_port", guest: 8081, host: 80081
   config.vm.network "forwarded_port", guest: 3306, host: 3307
 
   # Create a forwarded port mapping which allows access to a specific port
