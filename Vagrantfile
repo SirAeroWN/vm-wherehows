@@ -34,10 +34,10 @@
 
     # set up activator
     cd /opt
-    wget -quiet http://downloads.typesafe.com/typesafe-activator/1.3.11/typesafe-activator-1.3.11-minimal.zip
+    wget http://downloads.typesafe.com/typesafe-activator/1.3.11/typesafe-activator-1.3.11-minimal.zip
     unzip typesafe-activator-1.3.11-minimal.zip
     rm typesafe-activator-1.3.11-minimal.zip
-    chown -R ubuntu typesafe-activator-1.3.11-minimal
+    chown -R ubuntu activator-1.3.11-minimal
     echo 'export ACTIVATOR_HOME="/opt/activator-1.3.11-minimal"' >> /opt/activator_home
 
     chown -R ubuntu /var/tmp/
@@ -61,7 +61,7 @@
 
     # switch to stable version
     cd /opt/WhereHows
-    git checkout -b v0.2.0 tags/v0.2.0
+    #git checkout -b v0.2.0 tags/v0.2.0
 
     # build WhereHows
     sudo -u ubuntu PLAY_HOME="/opt/play-2.2.4" ACTIVATOR_HOME="/opt/activator-1.3.11-minimal" SBT_OPTS="-Xms1G -Xmx2G -Xss16M" PLAY_OPTS="-Xms1G -Xmx2G -Xss16M"  ./gradlew build
@@ -81,13 +81,13 @@
   $sql_script = <<-SQL_SCRIPT
 
     # make sure imported scripts are executable
-    chmod u+x /home/ubuntu/sed_cmds.sh
+    #chmod u+x /home/ubuntu/sed_cmds.sh
 
     # notify of starting sql
     echo '### Starting SQL Stuffs ###'
 
     # run sed scripts
-    /home/ubuntu/sed_cmds.sh
+    #/home/ubuntu/sed_cmds.sh
 
     # switch to correct dir
     cd /opt/WhereHows/data-model/DDL
@@ -102,7 +102,7 @@
     mysql -u root <<< "SET PASSWORD FOR 'wherehows_ro' = PASSWORD('readmetadata');"
     mysql -u root <<< "SET GLOBAL sql_mode=(SELECT REPLACE(@@sql_mode,'ONLY_FULL_GROUP_BY',''));"
     mysql -uwherehows -pwherehows -Dwherehows < /opt/WhereHows/data-model/DDL/create_all_tables_wrapper.sql
-    mysql -uwherehows -pwherehows -Dwherehows <<< "CREATE TABLE `family` ( `id` int(11) unsigned NOT NULL AUTO_INCREMENT, `parent_urn` varchar(200) NOT NULL DEFAULT '', `child_urn` varchar(200) NOT NULL DEFAULT '', PRIMARY KEY (`id`)) ENGINE=InnoDB DEFAULT CHARSET=utf8;"
+    #mysql -uwherehows -pwherehows -Dwherehows < /home/ubuntu/pre_downloads/family_setup.sql
 
   SQL_SCRIPT
 
@@ -134,12 +134,47 @@
 
   INSTALL_EXTRAS
 
-  $cattlog_script = <<-CATTLOG_SCRIPT
-    #mysql -u root <<< "CREATE DATABASE cattlog DEFAULT CHARACTER SET utf8 DEFAULT COLLATE utf8_general_ci;"
-    #mysql -u root <<< "CREATE USER 'cattlog';"
-    #mysql -u root <<< "SET PASSWORD FOR 'cattlog' = PASSWORD('cattlog');"
-    mysql -u root <<< "GRANT ALL ON cattlog.* TO 'cattlog';"
-  CATTLOG_SCRIPT
+  $family_script = <<-FAMILY_SCRIPT
+    mysql -uwherehows -pwherehows -Dwherehows < /home/ubuntu/pre_downloads/family_setup.sql
+  FAMILY_SCRIPT
+
+
+  $wherebuild_shared_script = <<-WHEREBUILD_SCRIPT
+
+    # make sure imported scripts are executable
+
+    # source activate_play_home
+    . /opt/activate_play_home
+
+    cd /vagrant/WhereHows
+
+    # build WhereHows
+    sudo -u ubuntu PLAY_HOME="/opt/play-2.2.4" ACTIVATOR_HOME="/opt/activator-1.3.11-minimal" SBT_OPTS="-Xms1G -Xmx2G -Xss16M" PLAY_OPTS="-Xms1G -Xmx2G -Xss16M"  ./gradlew build
+
+    # notify of build completion
+    echo '### WhereHows built ###'
+
+    sudo mkdir /var/tmp/wherehows
+    sudo chmod a+rw /var/tmp/wherehows
+    sudo mkdir /var/tmp/wherehows/resource
+
+    sudo touch /var/tmp/wherehows/resource/dataset.json
+    sudo touch /var/tmp/wherehows/resource/flow.json
+
+  WHEREBUILD_SCRIPT
+
+  $buildinplace_shared_script = <<-BUILDINPLACE_SCRIPT
+    cd /vagrant/WhereHows
+
+    # build WhereHows
+    sudo -u ubuntu PLAY_HOME="/opt/play-2.2.4" ACTIVATOR_HOME="/opt/activator-1.3.11-minimal" SBT_OPTS="-Xms1G -Xmx2G -Xss16M" PLAY_OPTS="-Xms1G -Xmx2G -Xss16M"  ./gradlew build
+
+    # have to fix sql every time for some reason, might indicate this is just treating a symptom of a more fundemental problem
+    mysql -u root <<< "SET GLOBAL sql_mode=(SELECT REPLACE(@@sql_mode,'ONLY_FULL_GROUP_BY',''));"
+
+    # notify of build completion
+    echo '### WhereHows built ###'
+  BUILDINPLACE_SCRIPT
 
 
 Vagrant.configure("2") do |config|
@@ -224,19 +259,24 @@ Vagrant.configure("2") do |config|
   config.vm.provision "wh_starter", type: "file", source: "./playapp", destination: "~/playapp"
 
   # upload LineageDAO.java
-  config.vm.provision "lindao", type: "file", source: "./LineageDAO.java", destination: "/opt/WhereHows/web/app/dao/LineageDAO.java"
+  config.vm.provision "lindao", type: "file", source: "./pre_downloads/LineageDAO.java", destination: "/opt/WhereHows/web/app/dao/LineageDAO.java"
 
   # upload lineage.js
-  config.vm.provision "linjs", type: "file", source: "./lineage.js", destination: "/opt/WhereHows/web/public/javascripts/lineage.js"
+  config.vm.provision "linjs", type: "file", source: "./pre_downloads/lineage.js", destination: "/opt/WhereHows/web/public/javascripts/lineage.js"
 
   #upload LineageNode.java
-  config.vm.provision "linnode", type: "file", source: "./LineageNode.java", destination: "/opt/WhereHows/web/app/models/LineageNode.java"
+  config.vm.provision "linnode", type: "file", source: "./pre_downloads/LineageNode.java", destination: "/opt/WhereHows/web/app/models/LineageNode.java"
+
+  # upload mysql.cnf to fix bind address
+  config.vm.provision "mysqlcnf", type: "file", source: "./pre_downloads/mysql.cnf", destination: "/etc/mysql/mysql.cnf"
 
   # upload compressed versions of play, WhereHows
   # these are expected to be in a pre_downloads/ directory in the same directory as the Vagrantfile
   config.vm.provision "where_git", type: "file", source: "./pre_downloads/WhereHows.tar.gz", destination: "~/pre_downloads/WhereHows.tar.gz"
 
   config.vm.provision "play_zip", type: "file", source: "./pre_downloads/play-2.2.4.zip", destination: "~/pre_downloads/play-2.2.4.zip"
+
+  config.vm.provision "family_file", type: "file", source: "./pre_downloads/family_setup.sql", destination: "~/pre_downloads/family_setup.sql"
 
 
   # run configs
@@ -252,8 +292,10 @@ Vagrant.configure("2") do |config|
 
   config.vm.provision "fixgroup", type: "shell", inline: $fixgroup_script
 
-  config.vm.provision "cattlog", type: "shell", inline: $cattlog_script
-
   config.vm.provision "buildinplace", type: "shell", inline: $buildinplace_script
+
+  config.vm.provision "build_share", type: "shell", inline: $wherebuild_shared_script
+
+  config.vm.provision "buildinplace_share", type: "shell", inline: $buildinplace_shared_script
 
 end
