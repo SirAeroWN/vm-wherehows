@@ -3,7 +3,7 @@
 # gets first occurance of provison in ordered list of provisions
 getFirst() {
 	# list of provisions in order run
-	declare -a provs=("play_zip" "prebuild" "extra_installs" "bashrc" "wh_starter" "extras" "where_git" "build" "sed_script" "sql" "noop")
+	declare -a provs=("play_zip" "prebuild" "extra_installs" "bashrc" "wh_starter" "extras" "where_git" "build" "sql" "mysqlcnf" "noop")
 	numprovs=${#provs[@]}
 
 	# loop through provisions, when $1 is found, stop and return that
@@ -63,39 +63,7 @@ restart() {
 reconfig() {
 	#vagrant halt
 	vagrant up --provision-with $1
-}
-
-# first setup of WhereHows VM
-init() {
-	vagrant halt
-	vagrant --force destroy
-	vagrant up --provision-with play_zip
-	vagrant up --provision-with prebuild
-	vagrant up --provision-with extra_installs
-	vagrant up --provision-with bashrc
-	vagrant up --provision-with wh_starter
-	vagrant up --provision-with extras
-	vagrant halt
-	DATE=`date +%Y_%m_%d-%H-%M`
-	NAME="prebuild_${DATE}"
-	vagrant snapshot save $NAME
-	vagrant snapshot save prebuild_internal_use
-	osascript -e 'display notification "prebuild done" with title "It done" sound name "Ping"'
-
-	vagrant up --provision-with where_git
-	vagrant up --provision-with build
-	vagrant up --provision-with sed_script
-	vagrant up --provision-with sql
-	vagrant halt
-	DATE=`date +%Y_%m_%d-%H-%M`
-	NAME="built_${DATE}"
-	vagrant snapshot save $NAME
-	osascript -e 'display notification "built done" with title "It done" sound name "Ping"'
-
-
-	osascript -e 'display notification "VM finished successfully?" with title "It done" sound name "Ping"'
-
-	vagrant snapshot list
+	osascript -e 'display notification "reconfiguration done" with title "It done" sound name "Ping"'
 }
 
 # get VM to a WhereHows ready state
@@ -114,6 +82,40 @@ ready() {
 	vagrant snapshot save $NAME
 	vagrant snapshot save prebuild_internal_use
 	osascript -e 'display notification "prebuild done" with title "It done" sound name "Ping"'
+}
+
+# first setup of WhereHows VM
+init() {
+	vagrant halt
+	vagrant --force destroy
+	vagrant up --provision-with play_zip
+	vagrant up --provision-with prebuild
+	vagrant up --provision-with extra_installs
+	vagrant up --provision-with bashrc
+	vagrant up --provision-with wh_starter
+	vagrant up --provision-with extras
+	vagrant halt
+	DATE=`date +%Y_%m_%d-%H-%M`
+	SPNAME="prebuild_${DATE}"
+	vagrant snapshot save $SPNAME
+	vagrant snapshot save prebuild_internal_use
+	osascript -e 'display notification "prebuild done" with title "It done" sound name "Ping"'
+
+	vagrant up --provision-with where_git
+	vagrant up --provision-with build
+	vagrant up --provision-with sql
+	vagrant up --provision-with mysqlcnf
+
+	vagrant halt
+	DATE=`date +%Y_%m_%d-%H-%M`
+	SPNAME="built_${DATE}"
+	vagrant snapshot save $SPNAME
+	osascript -e 'display notification "built done" with title "It done" sound name "Ping"'
+
+
+	osascript -e 'display notification "VM finished successfully?" with title "It done" sound name "Ping"'
+
+	vagrant snapshot list
 }
 
 # starts vm
@@ -141,7 +143,7 @@ delete() {
 
 configFrom() {
 	# list of provisions in order executed
-	declare -a provs=("play_zip" "prebuild" "extra_installs" "bashrc" "wh_starter" "extras" "where_git" "build" "sed_script" "sql" "noop")
+	declare -a provs=("play_zip" "prebuild" "extra_installs" "bashrc" "wh_starter" "extras" "where_git" "build" "sql" "mysqlcnf" "noop")
 	numprovs=${#provs[@]}
 
 	# finds index of first use of $1
@@ -157,12 +159,6 @@ configFrom() {
 }
 
 rebuild() {
-	# first compress modified WhereHows repo
-	tar -czvf WhereHows.tar.gz WhereHows/
-
-	# move it into pre_downloads directory
-	mv WhereHows.tar.gz pre_downloads/WhereHows.tar.gz
-
 	# restore to prebuild so don't have to do apt stuff
 	vagrant snapshot restore prebuild_internal_use --no-provision
 
@@ -186,6 +182,11 @@ build() {
 	fi
 	osascript -e 'display notification "buildinplace done" with title "It done" sound name "Ping"'
 	start
+}
+
+tarmv() {
+	tar -czvf WhereHows.tar.gz WhereHows/
+	mv WhereHows.tar.gz pre_downloads/
 }
 
 case $1 in
@@ -227,6 +228,9 @@ case $1 in
 		;;
 	build)
 		build $2
+		;;
+	tarmv)
+		tarmv
 		;;
 	*)
 		#echo "Usage: whvm.sh {save|restore|list|restart|reconfig|init|start|delete|configFrom|rebuild|ready} {snapshot-name|provison-name}"
