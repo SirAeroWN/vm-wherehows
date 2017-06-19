@@ -162,16 +162,16 @@ export WHZ_DB_HOST="localhost"
 alias playapp="~/playapp"
 
 start() {
-    playapp backend-service start 19001
-    playapp web start 9000
+    playapp backend-service start 19001 $1
+    playapp web start 9000 $1
 }
 
 stop() {
-    playapp backend-service stop
-    playapp web stop
+    playapp backend-service stop $1
+    playapp web stop $1
 }
 
 restart() {
-    stop
-    start
+    stop $1
+    start $1
 }
