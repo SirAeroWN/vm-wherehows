@@ -161,6 +161,13 @@ export WHZ_DB_HOST="localhost"
 
 alias playapp="~/playapp"
 
+chkprts() {
+    echo "web port 9000 usage:"
+    losf -i tcp:9000
+    echo "backend port 19001 usage:"
+    losf -i tcp:19001
+}
+
 start() {
     playapp backend-service start 19001 $1
     playapp web start 9000 $1
