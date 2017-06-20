@@ -1,5 +1,12 @@
 #Getting Started
-Run `./whvm.sh init` to initialize the VM and create three snapshots, the snapshots are:
+Clone the `wherehows-fork` repo and run the following commands:
+
+    mv wherehows-fork WhereHows
+    tar -czvf WhereHows.tar.gz WhereHows/
+
+Next, clone this (`wherehows`) repo and move the newly created `WhereHows.tar.gz` file into the `pre_downloads/` directory.
+
+`cd` into the `wherehows/` directory and run `./whvm.sh init` to initialize the VM and create three snapshots, the snapshots are:
 
 * `prebuild_(datetime)`: VM before WhereHows was built
 * `built_(datetime)`: VM just after WhereHows was built
@@ -7,19 +14,17 @@ Run `./whvm.sh init` to initialize the VM and create three snapshots, the snapsh
 
 Launch the VM by running `./whvm.sh start`. This will start the VM and start the WhereHows services running in the background. Their logs can be found at `~/backend-service.log` and `~/web.log`.
 
+The backend automatically listens on port `19001` and the web service automatiacally listens on port `9000`, you can change this setting in the `.bashrc` file
+
 ###Storing Lineage
-The new `family` table is used to store lineage in an ajacency table like fashion. It has two meaningful columns: `parent_urn` and `child_urn`. The values in each column are the urn of either the parent or child, the urn for datasets is their `urn`, the urn for apps is their `app_id`, and the urn for databases is their `uri`
+The new `family` table is used to store lineage in an ajacency table like fashion. It has two meaningful columns: `parent_urn` and `child_urn`. The values in each column are the urn of either the parent or child.
 
 ###Important Notes
 * **Don't use** `vagrant up` **to create and provision the VM! This will almost certainly fail!**
-* If you replace the default `WhereHows.tar.gz` file in `pre_downloads/` make sure that when it extracts the resulting folder is named `WhereHows`
-* Most VM actions you might want to take have probably already been automated with `whvm.sh` or might have a special way that they need to be done, look at `whvm.sh`'s documentation in this document or in the script itself first to save yourself some time and maybe a headache
+* Most VM actions you might want to take have probably already been automated with `whvm.sh` or might have a special way that they need to be done, look at `whvm.sh`'s documentation in this document or in the script itself first to save yourself some time and maybe a headache or two
 * It's probably a good idea to add an alias for `whvm.sh` to your `.bash_profile` like so: `alias wh="./whvm.sh"`
 
 ##Breakdown of files
-
-###`sed_cmds.sh`
-Has the `sed` commands for correcting the SQL database creation commands. Uses absolute paths to WhereHows files, so if WhereHows is moved then these need to be updated.
 
 ###`.bashrc`
 Replaces the default `.bashrc` file on the VM, put your aliases, extra sources, etc here (note that this is what starts the WhereHows services in the background, so make sure not to remove those commands accidentally).
@@ -34,7 +39,7 @@ This script is run automatically on VM login by `.bashrc` with some arguments to
 This folder has several compressed folders which are uploaded to the VM to avoid having to redownload them every time the VM is reprovisioned.
 
 ###`hreq.sh`
-This script makes sending `POST`, `PUT`, and `GET` requests to WhereHows easier. Run it like so: `./hreq.sh {post|put|get} {file|URL} {URL}`
+This script makes sending `POST`, `PUT`, and `GET` requests to WhereHows easier. Run it like so: `./hreq.sh {post|put|get} {file|URL} {URL} [port]`
 
 ###`whvm.sh`
 Abstracts away and simplifies some VM actions. Commands:
