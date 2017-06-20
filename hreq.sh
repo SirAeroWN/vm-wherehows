@@ -44,6 +44,6 @@ case $1 in
 		get $2 $3
 		;;
 	*)
-		echo "Usage: hreq {post|put|get} {file|URL} {URL}"
+		echo "Usage: hreq {post|put|get} {file|URL} {URL} {port}"
 		;;
 esac
