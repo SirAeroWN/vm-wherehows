@@ -32,14 +32,6 @@
     chown -R ubuntu play-2.2.4
     echo 'export PLAY_HOME="/opt/play-2.2.4"' >> /opt/activate_play_home
 
-    # set up activator
-    cd /opt
-    wget http://downloads.typesafe.com/typesafe-activator/1.3.11/typesafe-activator-1.3.11-minimal.zip
-    unzip typesafe-activator-1.3.11-minimal.zip
-    rm typesafe-activator-1.3.11-minimal.zip
-    chown -R ubuntu activator-1.3.11-minimal
-    echo 'export ACTIVATOR_HOME="/opt/activator-1.3.11-minimal"' >> /opt/activator_home
-
     chown -R ubuntu /var/tmp/
 
   PREBUILD_SCRIPT
@@ -149,7 +141,7 @@
     cd /vagrant/WhereHows
 
     # build WhereHows
-    sudo -u ubuntu PLAY_HOME="/opt/play-2.2.4" ACTIVATOR_HOME="/opt/activator-1.3.11-minimal" SBT_OPTS="-Xms1G -Xmx2G -Xss16M" PLAY_OPTS="-Xms1G -Xmx2G -Xss16M"  ./gradlew build
+    sudo -u ubuntu PLAY_HOME="/opt/play-2.2.4" SBT_OPTS="-Xms1G -Xmx2G -Xss16M" PLAY_OPTS="-Xms1G -Xmx2G -Xss16M"  ./gradlew build
 
     # notify of build completion
     echo '### WhereHows built ###'
@@ -167,7 +159,7 @@
     cd /vagrant/WhereHows
 
     # build WhereHows
-    sudo -u ubuntu PLAY_HOME="/opt/play-2.2.4" ACTIVATOR_HOME="/opt/activator-1.3.11-minimal" SBT_OPTS="-Xms1G -Xmx2G -Xss16M" PLAY_OPTS="-Xms1G -Xmx2G -Xss16M"  ./gradlew build
+    sudo -u ubuntu PLAY_HOME="/opt/play-2.2.4" SBT_OPTS="-Xms1G -Xmx2G -Xss16M" PLAY_OPTS="-Xms1G -Xmx2G -Xss16M"  ./gradlew build
 
     # have to fix sql every time for some reason, might indicate this is just treating a symptom of a more fundemental problem
     mysql -u root <<< "SET GLOBAL sql_mode=(SELECT REPLACE(@@sql_mode,'ONLY_FULL_GROUP_BY',''));"
