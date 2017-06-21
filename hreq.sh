@@ -18,9 +18,9 @@ put() {
 
 get() {
 	if [ -z "$2" ]; then
-		curl -i -H "Accept: application/json" -H "Content-Type: application/json" -X GET http://localhost:19001${2}
+		curl -i -H "Accept: application/json" -H "Content-Type: application/json" -X GET http://localhost:19001${1}
 	else
-		curl -i -H "Accept: application/json" -H "Content-Type: application/json" -X GET http://localhost:${3}${2}
+		curl -i -H "Accept: application/json" -H "Content-Type: application/json" -X GET http://localhost:${2}${1}
 	fi
 }
 
@@ -44,6 +44,6 @@ case $1 in
 		get $2 $3
 		;;
 	*)
-		echo "Usage: hreq {post|put|get} {file|URL} {URL}"
+		echo "Usage: hreq {post|put|get} {file|URL} {URL} {port}"
 		;;
 esac
