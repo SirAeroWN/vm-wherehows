@@ -2,7 +2,11 @@
 # starts/stops WhereHows stuff
 
 start() {
-	SDIR="/opt/WhereHows"
+  if [ -z "$4" ]; then
+  	SDIR="/opt/WhereHows"
+  else
+    SDIR="/vagrant/WhereHows"
+  fi
 	APP="$1"
   PORT="$3"
 	echo " * Starting ${APP} Service"
@@ -32,7 +36,11 @@ start() {
 }
 
 stop() {
-	SDIR="/opt/WhereHows"
+  if [ -z "$3" ]; then
+    SDIR="/opt/WhereHows"
+  else
+    SDIR="/vagrant/WhereHows"
+  fi
 	APP="$1"
 	echo " * Stopping ${APP} Service"
 
@@ -47,17 +55,17 @@ stop() {
 
 case "$2" in 
     start)
-       start "$1" "$2" "$3"
+       start "$1" "$2" "$3" "$4"
        ;;
     stop)
-       stop "$1" "$2"
+       stop "$1" "$2" "$3"
        ;;
     restart)
-       stop "$1" "$2"
-       start "$1" "$2" "$3"
+       stop "$1" "$2" "$3"
+       start "$1" "$2" "$3" "$4"
        ;;
   	*)
-    	echo "Usage: playapp {web|backend-service} {start|stop|restart} {port}"
+    	echo "Usage: playapp {web|backend-service} {start|stop|restart} {port} {dev}"
     	exit 1
     	;;
 esac
