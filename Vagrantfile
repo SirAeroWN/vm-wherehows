@@ -16,21 +16,21 @@
 
     #sed -i "s|bind-address    = 127.0.0.1|bind-address    = 0.0.0.0" /etc/mysql/mysql.conf.d/mysqld.cnf
 
-    # # install/set up play
-    # cd /opt
-    # wget –-quiet http://downloads.typesafe.com/play/2.2.4/play-2.2.4.zip
-    # unzip play-2.2.4.zip
-    # rm play-2.2.4.zip
-    # chown -R ubuntu play-2.2.4
-    # echo 'export PLAY_HOME="/opt/play-2.2.4"' >> /opt/activate_play_home
-
-    # play zip already uploaded
-    mv /home/ubuntu/pre_downloads/play-2.2.4.zip /opt/
+    # install/set up play
     cd /opt
+    wget –-quiet http://downloads.typesafe.com/play/2.2.4/play-2.2.4.zip
     unzip play-2.2.4.zip
     rm play-2.2.4.zip
     chown -R ubuntu play-2.2.4
     echo 'export PLAY_HOME="/opt/play-2.2.4"' >> /opt/activate_play_home
+
+    # # play zip already uploaded
+    # mv /home/ubuntu/pre_downloads/play-2.2.4.zip /opt/
+    # cd /opt
+    # unzip play-2.2.4.zip
+    # rm play-2.2.4.zip
+    # chown -R ubuntu play-2.2.4
+    # echo 'export PLAY_HOME="/opt/play-2.2.4"' >> /opt/activate_play_home
 
     chown -R ubuntu /var/tmp/
 
@@ -250,25 +250,9 @@ Vagrant.configure("2") do |config|
   # upload script for starting front end
   config.vm.provision "wh_starter", type: "file", source: "./playapp", destination: "~/playapp"
 
-  # upload LineageDAO.java
-  config.vm.provision "lindao", type: "file", source: "./pre_downloads/LineageDAO.java", destination: "/opt/WhereHows/web/app/dao/LineageDAO.java"
-
-  # upload lineage.js
-  config.vm.provision "linjs", type: "file", source: "./pre_downloads/lineage.js", destination: "/opt/WhereHows/web/public/javascripts/lineage.js"
-
-  #upload LineageNode.java
-  config.vm.provision "linnode", type: "file", source: "./pre_downloads/LineageNode.java", destination: "/opt/WhereHows/web/app/models/LineageNode.java"
-
-  # upload mysql.cnf to fix bind address
-  config.vm.provision "mysqlcnf", type: "file", source: "./pre_downloads/mysql.cnf", destination: "/etc/mysql/mysql.cnf"
-
   # upload compressed versions of play, WhereHows
   # these are expected to be in a pre_downloads/ directory in the same directory as the Vagrantfile
   config.vm.provision "where_git", type: "file", source: "./pre_downloads/WhereHows.tar.gz", destination: "~/pre_downloads/WhereHows.tar.gz"
-
-  config.vm.provision "play_zip", type: "file", source: "./pre_downloads/play-2.2.4.zip", destination: "~/pre_downloads/play-2.2.4.zip"
-
-  config.vm.provision "family_file", type: "file", source: "./pre_downloads/family_setup.sql", destination: "~/pre_downloads/family_setup.sql"
 
 
   # run configs
