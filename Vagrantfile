@@ -94,7 +94,7 @@
     mysql -u root <<< "SET PASSWORD FOR 'wherehows_ro' = PASSWORD('readmetadata');"
     mysql -u root <<< "SET GLOBAL sql_mode=(SELECT REPLACE(@@sql_mode,'ONLY_FULL_GROUP_BY',''));"
     mysql -uwherehows -pwherehows -Dwherehows < /opt/WhereHows/data-model/DDL/create_all_tables_wrapper.sql
-    #mysql -uwherehows -pwherehows -Dwherehows < /home/ubuntu/pre_downloads/family_setup.sql
+    #mysql -uwherehows -pwherehows -Dwherehows < /opt/WhereHows/data-model/DDL/default_properties.sql
 
   SQL_SCRIPT
 
@@ -238,8 +238,6 @@ Vagrant.configure("2") do |config|
   # documentation for more information about their specific syntax and use.
 
   # provision to upload local files
-  # put sed commands in a file
-  config.vm.provision "sed_script", type: "file", source: "./sed_cmds.sh", destination: "~/sed_cmds.sh"
 
   # file with alias and such that user can easily personalize
   config.vm.provision "bashrc", type: "file", source: "./.bashrc", destination: "~/.bashrc"
@@ -252,7 +250,7 @@ Vagrant.configure("2") do |config|
 
   # upload compressed versions of play, WhereHows
   # these are expected to be in a pre_downloads/ directory in the same directory as the Vagrantfile
-  config.vm.provision "where_git", type: "file", source: "./pre_downloads/WhereHows.tar.gz", destination: "~/pre_downloads/WhereHows.tar.gz"
+ config.vm.provision "where_git", type: "file", source: "./pre_downloads/WhereHows.tar.gz", destination: "~/pre_downloads/WhereHows.tar.gz"
 
 
   # run configs
