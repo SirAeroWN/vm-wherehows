@@ -24,13 +24,12 @@
     chown -R ubuntu play-2.2.4
     echo 'export PLAY_HOME="/opt/play-2.2.4"' >> /opt/activate_play_home
 
-    # # play zip already uploaded
-    # mv /home/ubuntu/pre_downloads/play-2.2.4.zip /opt/
-    # cd /opt
-    # unzip play-2.2.4.zip
-    # rm play-2.2.4.zip
-    # chown -R ubuntu play-2.2.4
-    # echo 'export PLAY_HOME="/opt/play-2.2.4"' >> /opt/activate_play_home
+    cd /opt
+    wget --quiet http://downloads.typesafe.com/typesafe-activator/1.3.11/typesafe-activator-1.3.11-minimal.zip
+    unzip typesafe-activator-1.3.11-minimal.zip
+    rm typesafe-activator-1.3.11-minimal.zip
+    chown -R ubuntu activator-1.3.11-minimal
+    echo 'export ACTIVATOR_HOME="/opt/activator-1.3.11-minimal"' >> /opt/activator_home
 
     chown -R ubuntu /var/tmp/
 
@@ -56,7 +55,7 @@
     #git checkout -b v0.2.0 tags/v0.2.0
 
     # build WhereHows
-    sudo -u ubuntu PLAY_HOME="/opt/play-2.2.4" SBT_OPTS="-Xms1G -Xmx2G -Xss16M" PLAY_OPTS="-Xms1G -Xmx2G -Xss16M"  ./gradlew build
+    sudo -u ubuntu PLAY_HOME="/opt/play-2.2.4" ACTIVATOR_HOME="/opt/activator-1.3.11-minimal" SBT_OPTS="-Xms1G -Xmx2G -Xss16M" PLAY_OPTS="-Xms1G -Xmx2G -Xss16M"  ./gradlew build
 
     # notify of build completion
     echo '### WhereHows built ###'
@@ -90,7 +89,7 @@
     mysql -u root <<< "SET PASSWORD FOR 'wherehows' = PASSWORD('wherehows');"
     mysql -u root <<< "GRANT ALL ON wherehows.* TO 'wherehows';"
     mysql -u root <<< "CREATE USER 'wherehows_ro';"
-    mysql -u root <<< "GRANT ALL ON wherehows.* TO 'wherehows_ro'"
+    mysql -u root <<< "GRANT ALL ON wherehows.* TO 'wherehows_ro';"
     mysql -u root <<< "SET PASSWORD FOR 'wherehows_ro' = PASSWORD('readmetadata');"
     mysql -u root <<< "SET GLOBAL sql_mode=(SELECT REPLACE(@@sql_mode,'ONLY_FULL_GROUP_BY',''));"
     mysql -uwherehows -pwherehows -Dwherehows < /opt/WhereHows/data-model/DDL/create_all_tables_wrapper.sql
@@ -102,7 +101,7 @@
     cd /opt/WhereHows
 
     # build WhereHows
-    sudo -u ubuntu PLAY_HOME="/opt/play-2.2.4" ACTIVATOR_HOME="/opt/activator-1.3.11-minimal" SBT_OPTS="-Xms1G -Xmx2G -Xss16M" PLAY_OPTS="-Xms1G -Xmx2G -Xss16M"  ./gradlew build
+    sudo -u ubuntu PLAY_HOME="/opt/play-2.2.4" ACTIVATOR_HOME="/opt/activator-1.3.11-minimal" SBT_OPTS="-Xms1G -Xmx2G -Xss16M" PLAY_OPTS="-Xms1G -Xmx2G -Xss16M"  ./gradlew build --stacktrace
 
     # have to fix sql every time for some reason, might indicate this is just treating a symptom of a more fundemental problem
     mysql -u root <<< "SET GLOBAL sql_mode=(SELECT REPLACE(@@sql_mode,'ONLY_FULL_GROUP_BY',''));"
@@ -159,7 +158,7 @@
     cd /vagrant/WhereHows
 
     # build WhereHows
-    sudo -u ubuntu PLAY_HOME="/opt/play-2.2.4" SBT_OPTS="-Xms1G -Xmx2G -Xss16M" PLAY_OPTS="-Xms1G -Xmx2G -Xss16M"  ./gradlew build
+    sudo -u ubuntu PLAY_HOME="/opt/play-2.2.4" ACTIVATOR_HOME="/opt/activator-1.3.11-minimal" SBT_OPTS="-Xms1G -Xmx2G -Xss16M" PLAY_OPTS="-Xms1G -Xmx2G -Xss16M"  ./gradlew clean build
 
     # have to fix sql every time for some reason, might indicate this is just treating a symptom of a more fundemental problem
     mysql -u root <<< "SET GLOBAL sql_mode=(SELECT REPLACE(@@sql_mode,'ONLY_FULL_GROUP_BY',''));"
@@ -250,7 +249,7 @@ Vagrant.configure("2") do |config|
 
   # upload compressed versions of play, WhereHows
   # these are expected to be in a pre_downloads/ directory in the same directory as the Vagrantfile
- config.vm.provision "where_git", type: "file", source: "./pre_downloads/WhereHows.tar.gz", destination: "~/pre_downloads/WhereHows.tar.gz"
+  config.vm.provision "where_git", type: "file", source: "./pre_downloads/WhereHows.tar.gz", destination: "~/pre_downloads/WhereHows.tar.gz"
 
 
   # run configs

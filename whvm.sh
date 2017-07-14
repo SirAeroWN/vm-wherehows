@@ -3,7 +3,7 @@
 # gets first occurance of provison in ordered list of provisions
 getFirst() {
 	# list of provisions in order run
-	declare -a provs=("play_zip" "prebuild" "extra_installs" "bashrc" "wh_starter" "extras" "where_git" "build" "sql" "noop")
+	declare -a provs=("prebuild" "extra_installs" "bashrc" "wh_starter" "extras" "where_git" "build" "sql" "noop")
 	numprovs=${#provs[@]}
 
 	# loop through provisions, when $1 is found, stop and return that
@@ -70,7 +70,6 @@ reconfig() {
 ready() {
 	vagrant halt
 	vagrant --force destroy
-	vagrant up --provision-with play_zip
 	vagrant up --provision-with prebuild
 	vagrant up --provision-with extra_installs
 	vagrant up --provision-with bashrc
@@ -88,7 +87,6 @@ ready() {
 init() {
 	vagrant halt
 	vagrant --force destroy
-	vagrant up --provision-with play_zip
 	vagrant up --provision-with prebuild
 	vagrant up --provision-with extra_installs
 	vagrant up --provision-with bashrc
@@ -142,7 +140,7 @@ delete() {
 
 configFrom() {
 	# list of provisions in order executed
-	declare -a provs=("play_zip" "prebuild" "extra_installs" "bashrc" "wh_starter" "extras" "where_git" "build" "sql" "noop")
+	declare -a provs=("prebuild" "extra_installs" "bashrc" "wh_starter" "extras" "where_git" "build" "sql" "noop")
 	numprovs=${#provs[@]}
 
 	# finds index of first use of $1

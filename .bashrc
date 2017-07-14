@@ -149,6 +149,10 @@ if [ -f /opt/activate_play_home ]; then
   source /opt/activate_play_home
 fi
 
+if [ -f /opt/activator_home ]; then
+  source /opt/activator_home
+fi
+
 ## need to export some global vars
 export WHZ_DB_URL="jdbc:mysql://localhost:3306/wherehows"
 export WHZ_DB_USERNAME="wherehows"
