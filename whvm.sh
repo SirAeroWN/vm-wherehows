@@ -64,6 +64,9 @@ reconfig() {
 	#vagrant halt
 	vagrant up --provision-with $1
 	osascript -e 'display notification "reconfiguration done" with title "It done" sound name "Ping"'
+	if [ $? -eq 0 ]; then
+		start
+	fi
 }
 
 # get VM to a WhereHows ready state

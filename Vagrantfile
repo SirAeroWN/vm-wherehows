@@ -85,12 +85,8 @@
 
     mysql_tzinfo_to_sql /usr/share/zoneinfo | mysql -u root mysql
     mysql -u root <<< "CREATE DATABASE wherehows DEFAULT CHARACTER SET utf8 DEFAULT COLLATE utf8_general_ci;"
-    mysql -u root <<< "CREATE USER 'wherehows';"
-    mysql -u root <<< "SET PASSWORD FOR 'wherehows' = PASSWORD('wherehows');"
-    mysql -u root <<< "GRANT ALL ON wherehows.* TO 'wherehows';"
-    mysql -u root <<< "CREATE USER 'wherehows_ro';"
-    mysql -u root <<< "GRANT ALL ON wherehows.* TO 'wherehows_ro';"
-    mysql -u root <<< "SET PASSWORD FOR 'wherehows_ro' = PASSWORD('readmetadata');"
+    mysql -u root <<< "GRANT ALL ON wherehows.* TO 'wherehows'@'localhost' IDENTIFIED BY 'wherehows';"
+    mysql -u root <<< "GRANT ALL ON wherehows.* TO 'wherehows'@'%' IDENTIFIED BY 'wherehows';"
     mysql -u root <<< "SET GLOBAL sql_mode=(SELECT REPLACE(@@sql_mode,'ONLY_FULL_GROUP_BY',''));"
     mysql -uwherehows -pwherehows -Dwherehows < /opt/WhereHows/data-model/DDL/create_all_tables_wrapper.sql
     #mysql -uwherehows -pwherehows -Dwherehows < /opt/WhereHows/data-model/DDL/default_properties.sql
@@ -158,7 +154,7 @@
     cd /vagrant/WhereHows
 
     # build WhereHows
-    sudo -u ubuntu PLAY_HOME="/opt/play-2.2.4" ACTIVATOR_HOME="/opt/activator-1.3.11-minimal" SBT_OPTS="-Xms1G -Xmx2G -Xss16M" PLAY_OPTS="-Xms1G -Xmx2G -Xss16M"  ./gradlew clean build
+    sudo -u ubuntu PLAY_HOME="/opt/play-2.2.4" ACTIVATOR_HOME="/opt/activator-1.3.11-minimal" SBT_OPTS="-Xms2G -Xmx4G -Xss32M" PLAY_OPTS="-Xms2G -Xmx4G -Xss32M"  ./gradlew clean build
 
     # have to fix sql every time for some reason, might indicate this is just treating a symptom of a more fundemental problem
     mysql -u root <<< "SET GLOBAL sql_mode=(SELECT REPLACE(@@sql_mode,'ONLY_FULL_GROUP_BY',''));"
